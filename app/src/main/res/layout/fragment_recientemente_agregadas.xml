@@ -1,0 +1,23 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.listplay.listplay.fragments.RecientementeAgregadas">
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recientesRecyclerview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:choiceMode="singleChoice" />
+
+    <TextView
+        android:id="@+id/noRecientes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:text="@string/noVideos"
+        android:textSize="20sp"
+        android:visibility="invisible" />
+
+</FrameLayout>

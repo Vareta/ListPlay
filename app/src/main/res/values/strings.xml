@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">Listplay</string>
+    <!-- PlayListAdapter -->
+    <string name="numeroVideosPlaylist">canciones</string>
+    <!--PlayLists Fragment -->
+    <string name="noPlayLists">No existen Playlists creadas</string>
+    <!--Videos Fragment -->
+    <string name="noVideos">No existen Videos actualmente</string>
+    <!--NAVIGATION VIEW-->
+    <string name="playlist_nav">Listas de reproducción</string>
+    <string name="allsongs_nav">Todas las canciones</string>
+    <string name="recientes_nav">Agregadas recientemente</string>
+    <string name="artistas_nav">Artistas</string>
+    <string name="settings_nav">Opciones</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>
