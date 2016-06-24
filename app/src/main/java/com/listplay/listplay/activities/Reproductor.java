@@ -25,6 +25,7 @@ import android.widget.TextView;
 
 import com.listplay.listplay.R;
 import com.listplay.listplay.classes.CRUD;
+import com.listplay.listplay.classes.Preferencias;
 import com.listplay.listplay.classes.ReproductorService;
 import com.listplay.listplay.classes.ReproductorService.LocalBinder;
 import com.listplay.listplay.models.Video;
@@ -56,12 +57,14 @@ public class Reproductor extends AppCompatActivity {
     private List<Video> videosAReproducir;
     private Handler threadHandler = new Handler();
     private Video videoActual;
+    private Preferencias pref;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_reproductor);
+        pref = new Preferencias();
         iniciaElementos();
         buttonListeners();
         Bundle bundle = getIntent().getExtras();
@@ -88,6 +91,9 @@ public class Reproductor extends AppCompatActivity {
         shuffle = (ImageButton)findViewById(R.id.shuffle);
         portada = (ImageView)findViewById(R.id.imagen);
 
+        if (!pref.isRepeat(this)) {
+            repeat.setColorFilter(R.color.gris);
+        }
         Intent intent = new Intent(getBaseContext(), ReproductorService.class);
         startService(intent);
     }
