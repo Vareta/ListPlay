@@ -72,7 +72,7 @@ public class Reproductor extends AppCompatActivity {
         pref = new Preferencias();
         util = new Utilities();
         iniciaElementos();
-        buttonListeners();
+        buttonListeners(this);
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
             playListAReproducir = bundle.getLong("playlistid");
@@ -83,32 +83,36 @@ public class Reproductor extends AppCompatActivity {
     }
 
     private void iniciaElementos() {
-        seekBar = (SeekBar)findViewById(R.id.seekBar);
-        tiempoActual = (TextView)findViewById(R.id.tiempoActual);
-        tiempoTotal = (TextView)findViewById(R.id.tiempoTotal);
-        nombreArtista = (TextView)findViewById(R.id.nombreArtista);
-        nombreCancion = (TextView)findViewById(R.id.nombreCancion);
-        prevList = (ImageButton)findViewById(R.id.prevList);
-        prevSong = (ImageButton)findViewById(R.id.prevSong);
-        playStop = (ImageButton)findViewById(R.id.playStop);
-        nextSong = (ImageButton)findViewById(R.id.nextSong);
-        nextList = (ImageButton)findViewById(R.id.nextList);
-        repeat = (ImageButton)findViewById(R.id.repeat);
-        shuffle = (ImageButton)findViewById(R.id.shuffle);
-        portada = (ImageView)findViewById(R.id.imagen);
+        seekBar = (SeekBar) findViewById(R.id.seekBar);
+        tiempoActual = (TextView) findViewById(R.id.tiempoActual);
+        tiempoTotal = (TextView) findViewById(R.id.tiempoTotal);
+        nombreArtista = (TextView) findViewById(R.id.nombreArtista);
+        nombreCancion = (TextView) findViewById(R.id.nombreCancion);
+        prevList = (ImageButton) findViewById(R.id.prevList);
+        prevSong = (ImageButton) findViewById(R.id.prevSong);
+        playStop = (ImageButton) findViewById(R.id.playStop);
+        nextSong = (ImageButton) findViewById(R.id.nextSong);
+        nextList = (ImageButton) findViewById(R.id.nextList);
+        repeat = (ImageButton) findViewById(R.id.repeat);
+        shuffle = (ImageButton) findViewById(R.id.shuffle);
+        portada = (ImageView) findViewById(R.id.imagen);
 
         if (!pref.isRepeat(this) && !pref.isRepeatOnce(this)) {
-            util.cambiaColorDrawable(getResources(), R.drawable.repeat, R.color.gris, getTheme());
+            repeat.setBackground(util.cambiaColorDrawable(getResources(), R.drawable.repeat, R.color.gris, getTheme()));
         }
 
         if (!pref.isShuffle(this)) {
-            util.cambiaColorDrawable(getResources(), R.drawable.shuffle_variant, R.color.gris, getTheme());
+            shuffle.setBackground(util.cambiaColorDrawable(getResources(), R.drawable.shuffle_variant, R.color.gris, getTheme()));
+        }
+
+        if (pref.isRepeatOnce(this)) {
+            repeat.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.repeat_once, getTheme()));
         }
         Intent intent = new Intent(getBaseContext(), ReproductorService.class);
         startService(intent);
     }
 
-    private void buttonListeners() {
+    private void buttonListeners(final Context context) {
         playStop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -135,12 +139,60 @@ public class Reproductor extends AppCompatActivity {
                 setInfoVideo();
             }
         });
+
+        shuffle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (pref.isShuffle(context)) {
+                    pref.setShuffle(context, false);
+                    shuffle.setBackground(util.cambiaColorDrawable(getResources(), R.drawable.shuffle_variant, R.color.gris, getTheme()));
+
+                    System.out.println("shuffle off");
+                } else {
+                    System.out.println("shuffle on");
+                    pref.setShuffle(context, true);
+                    shuffle.setBackground(util.cambiaColorDrawable(getResources(), R.drawable.shuffle_variant, R.color.negro, getTheme()));
+                }
+            }
+        });
+
+        /**
+         * Orden en cuanto al click del boton es:
+         * repeat false default
+         * click 1 --> repeat true
+         * click 2 --> repeat one true
+         */
+        repeat.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //repeat off --> repeat on
+                if (!pref.isRepeat(context) && !pref.isRepeatOnce(context)) {
+                    pref.setRepeat(context, true);
+                    pref.setRepeatOnce(context, false);
+                    repeat.setBackground(util.cambiaColorDrawable(getResources(), R.drawable.repeat, R.color.negro, getTheme()));
+                    System.out.println("repeat on");
+                } else if (pref.isRepeat(context)) {//repeat on --> repeat once
+                    pref.setRepeat(context, false);
+                    pref.setRepeatOnce(context, true);
+                    repeat.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.repeat_once, getTheme()));
+                    System.out.println("repeat once");
+                } else { //repeat once --> repeat off
+                    pref.setRepeatOnce(context, false);
+                    pref.setRepeat(context, false);
+                    repeat.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.repeat, getTheme()));
+                    repeat.setBackground(util.cambiaColorDrawable(getResources(), R.drawable.repeat, R.color.gris, getTheme()));
+                    System.out.println("repeat off");
+                }
+
+            }
+        });
+
     }
 
     // Thread to Update position for SeekBar.
     private class UpdateSeekBarThread implements Runnable {
 
-        public void run()  {
+        public void run() {
             if (!mService.isExoPlayerNull()) {
                 int posicionActual = mService.getCurrentPosition();
                 int duracionTotal = mService.getDuration();
@@ -200,7 +252,9 @@ public class Reproductor extends AppCompatActivity {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(sigVideoReceiver);
     }
 
-    /** Defines callbacks for service binding, passed to bindService() */
+    /**
+     * Defines callbacks for service binding, passed to bindService()
+     */
     private ServiceConnection mConnection = new ServiceConnection() {
 
         @Override

@@ -28,13 +28,16 @@ public class Utilities {
      * @param color a cambiar
      * @param theme tema
      */
-    public void cambiaColorDrawable(Resources resources, int drawable, int color, Theme theme) {
+    public Drawable cambiaColorDrawable(Resources resources, int drawable, int color, Theme theme) {
         Drawable normalDrawable = ResourcesCompat.getDrawable(resources, drawable, theme);
         if (normalDrawable != null) {
             Drawable wrapDrawable = DrawableCompat.wrap(normalDrawable);
             DrawableCompat.setTint(wrapDrawable, ResourcesCompat.getColor(resources, color, theme));
+            return wrapDrawable;
         } else {
             Log.d(TAG, "ERROR: Drawable nulo");
+            return null;
         }
+
     }
 }

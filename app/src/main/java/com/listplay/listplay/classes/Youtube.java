@@ -333,7 +333,7 @@ public class Youtube {
         while (nameMatcher.find()) {
             auxNombreFuncion = nameMatcher.group(1);
         }
-        Matcher functionMatcher = Pattern.compile(",(" + auxNombreFuncion + "=function\\(.\\)+.*?\\}),").matcher(codigoFuente);//obtiene la funcion principal
+        Matcher functionMatcher = Pattern.compile(";("+ auxNombreFuncion +"=function\\(.\\)\\{.*?\\});").matcher(codigoFuente);//obtiene la funcion principal
         while (functionMatcher.find()) {
             auxFuncionPrincipal = functionMatcher.group(1);
         }
