@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
 import android.os.AsyncTask;
 import android.os.Handler;
@@ -15,8 +16,10 @@ import android.os.IBinder;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.content.res.ResourcesCompat;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -28,6 +31,7 @@ import com.listplay.listplay.classes.CRUD;
 import com.listplay.listplay.classes.Preferencias;
 import com.listplay.listplay.classes.ReproductorService;
 import com.listplay.listplay.classes.ReproductorService.LocalBinder;
+import com.listplay.listplay.classes.Utilities;
 import com.listplay.listplay.models.Video;
 import com.squareup.picasso.Picasso;
 
@@ -58,6 +62,7 @@ public class Reproductor extends AppCompatActivity {
     private Handler threadHandler = new Handler();
     private Video videoActual;
     private Preferencias pref;
+    private Utilities util;
 
 
     @Override
@@ -65,6 +70,7 @@ public class Reproductor extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_reproductor);
         pref = new Preferencias();
+        util = new Utilities();
         iniciaElementos();
         buttonListeners();
         Bundle bundle = getIntent().getExtras();
@@ -91,8 +97,12 @@ public class Reproductor extends AppCompatActivity {
         shuffle = (ImageButton)findViewById(R.id.shuffle);
         portada = (ImageView)findViewById(R.id.imagen);
 
-        if (!pref.isRepeat(this)) {
-            repeat.setColorFilter(R.color.gris);
+        if (!pref.isRepeat(this) && !pref.isRepeatOnce(this)) {
+            util.cambiaColorDrawable(getResources(), R.drawable.repeat, R.color.gris, getTheme());
+        }
+
+        if (!pref.isShuffle(this)) {
+            util.cambiaColorDrawable(getResources(), R.drawable.shuffle_variant, R.color.gris, getTheme());
         }
         Intent intent = new Intent(getBaseContext(), ReproductorService.class);
         startService(intent);
