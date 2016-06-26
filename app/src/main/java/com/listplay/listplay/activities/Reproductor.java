@@ -63,6 +63,7 @@ public class Reproductor extends AppCompatActivity {
     private Video videoActual;
     private Preferencias pref;
     private Utilities util;
+    private Bundle bundle;
 
 
     @Override
@@ -71,15 +72,16 @@ public class Reproductor extends AppCompatActivity {
         setContentView(R.layout.activity_reproductor);
         pref = new Preferencias();
         util = new Utilities();
+
+
         iniciaElementos();
         buttonListeners(this);
-        Bundle bundle = getIntent().getExtras();
+        bundle = getIntent().getExtras();
         if (bundle != null) {
             playListAReproducir = bundle.getLong("playlistid");
             posVideoAReproducir = bundle.getInt("posicion");
             new Reproducir().execute();
         }
-
     }
 
     private void iniciaElementos() {

@@ -215,8 +215,9 @@ public class CRUD {
             }
         } else { //si ya contiene videos
             int posicioInicial = playListsConVideos.get(playListsConVideos.size() - 1).getPosicion() + 1; //obtiene la posicion que debera llevar el primer elemento a añadir
+            long idVideoAAñadir;
             for (int j = 0; j < videosId.size(); j++) { //recorre la lista de vides a añadir
-                long idVideoAAñadir = getVideoId(videosId.get(j)); //obtiene el id (en la tabla) del video a añadir
+                idVideoAAñadir = getVideoId(videosId.get(j)); //obtiene el id (en la tabla) del video a añadir
                 if (!existeVideoEnPlayListConVideos(idVideoAAñadir, playListsConVideos)) { //si el video no existe en la playlist
                     guardarVideoAPlayList(idPlaylist, idVideoAAñadir, posicioInicial); //se añade el video
                     posicioInicial += 1; //se incrementa la posicion para el siguiente video

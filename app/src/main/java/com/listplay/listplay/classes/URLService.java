@@ -74,33 +74,34 @@ public class URLService extends IntentService {
             Document codigoFuentePlaylist = youtube.jsoupConnect(id, Youtube.URL_PLAYLIST); //obtiene el codigo fuente de la playlist en youtube
             String nombre = youtube.getNombreYoutubePlaylist(codigoFuentePlaylist); //obtiene el nombre de la playlist en youtube
             if (nombre != null) {
-                if (!crud.existePlaylist(nombre)) { //si la playlist no se encuentra almacenada
-                    List<String> urlsId = youtube.getIdVideosPlaylist(codigoFuentePlaylist); //obtiene las id (de la url) de los videos de la playlist
-                    if (urlsId != null) {
-                        List<String> aAñadir = new ArrayList<>(); //lista auxiliar, la cual contendra las id (de la url) que se deberan añadir
-                        int videosFallidos = 0, aux = 0;
-                        notificaProcesoExtraccion("Empieza la extraccion"); //notifica inicio de extraccion
-                        for (int i = 0; i < urlsId.size(); i++) {
-                            if (!crud.existeVideo(urlsId.get(i))) { //si no existe video
-                                aux = almacenaVideo(urlsId.get(i)); //Lo intenta almacenar
-                                if (aux == 0) { //si no existen problemas
-                                    aAñadir.add(urlsId.get(i));
-                                } else { //si falla
-                                    videosFallidos += aux; //se contabiliza
-                                }
-                            } else { //video repetido
-                                Log.d(TAG, "video repetido, id: " + urlsId.get(i));
-                            }
-                        }
-                        crud.añadirPlayList(nombre);
-                        crud.añadirMuchosVideosAPlaylist(aAñadir, nombre);
+                List<String> urlsId = youtube.getIdVideosPlaylist(codigoFuentePlaylist); //obtiene las id (de la url) de los videos de la playlist
+                if (urlsId != null) {
+                    List<String> aAñadir = new ArrayList<>(); //lista auxiliar, la cual contendra las id (de la url) que se deberan añadir
+                    int videosFallidos = 0, aux;
+                    notificaProcesoExtraccion("Empieza la extraccion"); //notifica inicio de extraccion
 
-                        notificaProcesoExtraccion("añadidos " + (urlsId.size() - videosFallidos) + "/" + urlsId.size());
-                    } else {
-                        notificaProcesoExtraccion("Problema al obtener los videos de la playlist. Probablemente la playlist sea privada");
+                    if (!crud.existePlaylist(nombre)) { //si la playlist no se encuentra almacenada
+                        crud.añadirPlayList(nombre);
                     }
+
+                    for (int i = 0; i < urlsId.size(); i++) {
+                        if (!crud.existeVideo(urlsId.get(i))) { //si no existe video
+                            aux = almacenaVideo(urlsId.get(i)); //Lo intenta almacenar
+                            if (aux == 0) { //si no existen problemas
+                                aAñadir.add(urlsId.get(i));
+                            } else { //si falla
+                                videosFallidos += aux; //se contabiliza
+                            }
+                        } else { //video repetido, por lo que no se agrega a la db, pero si a la lista a añadir
+                            aAñadir.add(urlsId.get(i));
+                            Log.d(TAG, "video repetido, id: " + urlsId.get(i));
+                        }
+                    }
+
+                    crud.añadirMuchosVideosAPlaylist(aAñadir, nombre);
+                    notificaProcesoExtraccion("añadidos " + (urlsId.size() - videosFallidos) + "/" + urlsId.size());
                 } else {
-                    notificaProcesoExtraccion("ya existe una playlist con ese nombre");
+                    notificaProcesoExtraccion("Problema al obtener los videos de la playlist. Probablemente la playlist sea privada");
                 }
             } else {
                 notificaProcesoExtraccion("No se pudo obtener el nombre de la playlist");
