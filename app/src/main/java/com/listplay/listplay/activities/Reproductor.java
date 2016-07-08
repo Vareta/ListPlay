@@ -72,16 +72,18 @@ public class Reproductor extends AppCompatActivity {
         setContentView(R.layout.activity_reproductor);
         pref = new Preferencias();
         util = new Utilities();
+        //Inicializa el thread que monitorea la seekbar
+        UpdateSeekBarThread update = new UpdateSeekBarThread();
+        threadHandler.postDelayed(update, 500);
 
-
-        iniciaElementos();
-        buttonListeners(this);
         bundle = getIntent().getExtras();
         if (bundle != null) {
             playListAReproducir = bundle.getLong("playlistid");
             posVideoAReproducir = bundle.getInt("posicion");
             new Reproducir().execute();
         }
+        iniciaElementos();
+        buttonListeners(this);
     }
 
     private void iniciaElementos() {
@@ -129,7 +131,7 @@ public class Reproductor extends AppCompatActivity {
         prevSong.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mService.reproducir(ReproductorService.ANTERIOR);
+                mService.reproducir(ReproductorService.ANTERIOR, ReproductorService.DESDE_LOS_CONTROLES);
                 setInfoVideo();
             }
         });
@@ -137,7 +139,7 @@ public class Reproductor extends AppCompatActivity {
         nextSong.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mService.reproducir(ReproductorService.SIGUIENTE);
+                mService.reproducir(ReproductorService.SIGUIENTE, ReproductorService.DESDE_LOS_CONTROLES);
                 setInfoVideo();
             }
         });
@@ -195,24 +197,26 @@ public class Reproductor extends AppCompatActivity {
     private class UpdateSeekBarThread implements Runnable {
 
         public void run() {
-            if (!mService.isExoPlayerNull()) {
-                int posicionActual = mService.getCurrentPosition();
-                int duracionTotal = mService.getDuration();
-                posVideoAReproducir = mService.getPosVideoActual();
-                Long buffered = mService.getBufferedPosition();
-                seekBar.setMax(duracionTotal);
-                seekBar.setProgress(posicionActual);
-                seekBar.setSecondaryProgress(buffered.intValue());
-                tiempoActual.setText(new DateTime(posicionActual).toString("mm:ss"));
-                tiempoTotal.setText(new DateTime(duracionTotal).toString("mm:ss"));
-                // Delay thread 1000 milisecond.
-                if (mService.isPlaying()) {
-                    playStop.setSelected(true);
-                } else {
-                    playStop.setSelected(false);
-                }
+            if (mService != null) {
+                if (!mService.isExoPlayerNull()) {
+                    int posicionActual = mService.getCurrentPosition();
+                    int duracionTotal = mService.getDuration();
+                    posVideoAReproducir = mService.getPosVideoActual();
+                    Long buffered = mService.getBufferedPosition();
+                    seekBar.setMax(duracionTotal);
+                    seekBar.setProgress(posicionActual);
+                    seekBar.setSecondaryProgress(buffered.intValue());
+                    tiempoActual.setText(new DateTime(posicionActual).toString("mm:ss"));
+                    tiempoTotal.setText(new DateTime(duracionTotal).toString("mm:ss"));
+                    // Delay thread 1000 milisecond.
+                    if (mService.isPlaying()) {
+                        playStop.setSelected(true);
+                    } else {
+                        playStop.setSelected(false);
+                    }
 
-                threadHandler.postDelayed(this, 500);
+                    threadHandler.postDelayed(this, 500);
+                }
             }
         }
     }
@@ -223,6 +227,7 @@ public class Reproductor extends AppCompatActivity {
         // Bind to LocalService
         Intent intent = new Intent(this, ReproductorService.class);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+
     }
 
     @Override
@@ -238,9 +243,7 @@ public class Reproductor extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        //Inicializa el thread que monitorea la seekbar
-        UpdateSeekBarThread update = new UpdateSeekBarThread();
-        threadHandler.postDelayed(update, 500);
+
 
         //Inicializa el localbroadcast que monitorea cuando se reproduce la siguiente cancion (automaticamente desde el service)
         IntentFilter intentFilter = new IntentFilter("siguiente");
@@ -289,7 +292,7 @@ public class Reproductor extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Void result) {
-            mService.reproducirInicial(videosAReproducir, posVideoAReproducir);
+            mService.reproducirInicial(videosAReproducir, posVideoAReproducir, playListAReproducir);
         }
 
     }

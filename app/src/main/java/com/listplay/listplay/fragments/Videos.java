@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -94,6 +95,10 @@ public class Videos extends Fragment implements CustomRecyclerListener{
         void onVideosClick(long playListId, int posVideoAReproducir);
     }
 
+    /**
+     * Obtiene los videos de la playlist de manera asincrona para luego adjuntarlas al adaptador
+     * y mostrarlas en la vista
+     */
     private class TraerVideosPlaylist extends AsyncTask<CustomRecyclerListener, Void, Void> {
 
         @Override
@@ -122,9 +127,25 @@ public class Videos extends Fragment implements CustomRecyclerListener{
                 recyclerView.setVisibility(View.GONE);
             } else {
                 recyclerView.setAdapter(adaptador);
+                ItemTouchHelper itemTouchHelper = new ItemTouchHelper(itemTouchCallBack);
+                itemTouchHelper.attachToRecyclerView(recyclerView); //añade la lista a la escucha
             }
             progressBar.setVisibility(View.GONE);
         }
 
     }
+
+    ItemTouchHelper.SimpleCallback itemTouchCallBack = new ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP | ItemTouchHelper.DOWN, 0) {
+        @Override
+        public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+            adaptador.swap(viewHolder.getAdapterPosition(), target.getAdapterPosition());
+            crud.swapVideosEnPlaylist(playListId, videos.get(viewHolder.getAdapterPosition()).getId(), videos.get(target.getAdapterPosition()).getId());
+            return true;
+        }
+
+        @Override
+        public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+            //no realiza nada
+        }
+    };
 }

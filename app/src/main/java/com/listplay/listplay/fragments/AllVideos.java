@@ -2,13 +2,24 @@ package com.listplay.listplay.fragments;
 
 import android.content.Context;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.listplay.listplay.R;
+import com.listplay.listplay.adapters.VideoAdapter;
+import com.listplay.listplay.classes.CRUD;
+import com.listplay.listplay.classes.CustomRecyclerListener;
+import com.listplay.listplay.models.Video;
+
+import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -16,9 +27,15 @@ import com.listplay.listplay.R;
  * {@link AllVideos.OnFragmentInteractionListener} interface
  * to handle interaction events.
  */
-public class AllVideos extends Fragment {
-
+public class AllVideos extends Fragment implements CustomRecyclerListener{
     private OnFragmentInteractionListener mListener;
+    private RecyclerView recyclerView;
+    private TextView noAllVideos;
+    private ProgressBar progressBar;
+    private List<Video> allVideosList;
+    private boolean existenVideos;
+    private VideoAdapter adaptador;
+    private CRUD crud;
 
     public AllVideos() {
         // Required empty public constructor
@@ -26,18 +43,19 @@ public class AllVideos extends Fragment {
 
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_all_videos, container, false);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View convertView = inflater.inflate(R.layout.fragment_all_videos, container, false);
+        recyclerView = (RecyclerView)convertView.findViewById(R.id.allVideosRecyclerview);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        noAllVideos = (TextView)convertView.findViewById(R.id.noAllVideos);
+        progressBar = (ProgressBar)getActivity().findViewById(R.id.progressBar);
+        crud = new CRUD();
+
+        new TraerAllVideos().execute(this);
+
+        return convertView;
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
 
     @Override
     public void onAttach(Context context) {
@@ -56,18 +74,52 @@ public class AllVideos extends Fragment {
         mListener = null;
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
+    @Override
+    public void customClickListener(View v, int position) {
+
+    }
+
+    @Override
+    public void customLongClickListener(View v, int position) {
+
+    }
+
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
+    }
+
+    private class TraerAllVideos extends AsyncTask<CustomRecyclerListener, Void, Void> {
+
+        @Override
+        protected Void doInBackground(CustomRecyclerListener... params) {
+            allVideosList = crud.getAllVideos();
+            if (!allVideosList.isEmpty()) {
+                existenVideos = true;
+                adaptador = new VideoAdapter(allVideosList);
+                adaptador.setClickListener(params[0]);
+            } else {
+                existenVideos = false;
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            noAllVideos.setVisibility(View.GONE);
+            progressBar.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            if (!existenVideos) {
+                noAllVideos.setVisibility(View.VISIBLE);
+                recyclerView.setVisibility(View.GONE);
+            } else {
+                recyclerView.setAdapter(adaptador);
+            }
+            progressBar.setVisibility(View.GONE);
+        }
+
     }
 }

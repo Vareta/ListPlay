@@ -84,4 +84,5 @@ public class PlayListAdapter extends RecyclerView.Adapter<PlayListAdapter.PlayLi
     public int getItemCount() {
         return items.size();
     }
+
 }

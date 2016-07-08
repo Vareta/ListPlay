@@ -6,6 +6,8 @@
     <string name="noPlayLists">No existen Playlists creadas</string>
     <!--Videos Fragment -->
     <string name="noVideos">No existen Videos actualmente</string>
+    <!--AllVideos Fragment -->
+    <string name="noAllVideos">No existen Videos actualmente</string>
     <!--NAVIGATION VIEW-->
     <string name="playlist_nav">Listas de reproducción</string>
     <string name="allsongs_nav">Todas las canciones</string>

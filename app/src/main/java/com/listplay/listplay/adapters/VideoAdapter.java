@@ -16,6 +16,7 @@ import com.listplay.listplay.R;
 
 import org.joda.time.DateTime;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -89,4 +90,22 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoHolder>
         return items.size();
     }
 
+    /**
+     * Elimina un item dada cierta posicion
+     * @param position posicion del elemento a eliminar
+     */
+    public void remove(int position) {
+        items.remove(position);
+        notifyItemRemoved(position);
+    }
+
+    /**
+     * Cambia de posicion entre elementos de la lista
+     * @param firstPosition posicion inicial
+     * @param secondPosition posicion final
+     */
+    public void swap(int firstPosition, int secondPosition) {
+        Collections.swap(items, firstPosition, secondPosition);
+        notifyItemMoved(firstPosition, secondPosition);
+    }
 }

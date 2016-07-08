@@ -63,7 +63,6 @@ public class CRUD {
             return false;
         } else {
             return true;
-
         }
     }
 
@@ -153,6 +152,16 @@ public class CRUD {
             }
             return recientes;
         }
+    }
+
+    /**
+     * Consulta por todos los vides existentes
+     * @return Una lista con los videos contenidos
+     */
+    public List<Video> getAllVideos() {
+        List<Video> allVideos = new ArrayList<>();
+        allVideos = DataSupport.findAll(Video.class);
+        return allVideos;
     }
 
 
@@ -294,7 +303,7 @@ public class CRUD {
      */
     public List<Video> getVideosPlaylist(long idPlaylist) {
         List<Video> resultado = new ArrayList<>();
-        List<PlayListsConVideos> videosEnPlaylist = new ArrayList<>();
+        List<PlayListsConVideos> videosEnPlaylist;
 
         videosEnPlaylist = DataSupport.where("playListId =?", String.valueOf(idPlaylist)).find(PlayListsConVideos.class);
         for (int i = 0; i < videosEnPlaylist.size(); i++) {
@@ -302,6 +311,25 @@ public class CRUD {
         }
 
         return resultado;
+    }
+
+    /**
+     * Cambia de posicion dos videos dentro de una playlist dada
+     * (En este punto la playlist siempre existe y los videos a consultar en ella tambien, por lo que
+     * no necesitan verificacion)
+     * @param playListId id de la playlist
+     * @param posIniId id del video que se quiere cambiar de posicion
+     * @param posFinId id del video cuya posicion será cambiada por la del primer video (aka, posIniId)
+     */
+    public void swapVideosEnPlaylist(long playListId, long posIniId, long posFinId) {
+        List<PlayListsConVideos> videoIni = DataSupport.where("playListId =? and videoId =?", String.valueOf(playListId), String.valueOf(posIniId)).find(PlayListsConVideos.class);
+        List<PlayListsConVideos> videoFin = DataSupport.where("playListId =? and videoId =?", String.valueOf(playListId), String.valueOf(posFinId)).find(PlayListsConVideos.class);
+
+        PlayListsConVideos pl = new PlayListsConVideos();
+        pl.setVideoId(posIniId);
+        pl.update(videoFin.get(0).getId());
+        pl.setVideoId(posFinId);
+        pl.update(videoIni.get(0).getId());
     }
 
 }

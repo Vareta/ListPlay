@@ -4,4 +4,19 @@
     android:layout_height="match_parent"
     tools:context="com.listplay.listplay.fragments.AllVideos">
 
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/allVideosRecyclerview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:choiceMode="singleChoice" />
+
+    <TextView
+        android:id="@+id/noAllVideos"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:text="@string/noAllVideos"
+        android:textSize="20sp"
+        android:visibility="invisible" />
 </FrameLayout>

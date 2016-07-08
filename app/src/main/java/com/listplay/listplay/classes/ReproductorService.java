@@ -36,7 +36,7 @@ import org.joda.time.DateTime;
 import java.util.Collections;
 import java.util.List;
 
-public class ReproductorService extends Service implements ExoPlayer.Listener{
+public class ReproductorService extends Service implements ExoPlayer.Listener {
     private static final String TAG = "ReproductorService";
     private static final int RENDERER_COUNT = 1;
     private static final int minBufferMs = 1000;
@@ -65,19 +65,31 @@ public class ReproductorService extends Service implements ExoPlayer.Listener{
      * o cuando se inicia la reproduccion desde un video en especifico, pero en modo shuffle
      */
     public static final int DESDE_X_VIDEO = 1;
+    /**
+     * Para cuando la funcion reproducir se llama desde el service (ReproductorService)
+     */
+    public static final int DE_MANERA_INTERNA = 0;
+    /**
+     * Para cuando la funcion reproducir se llama desde fuera del service, es decir, desde los controles
+     */
+    public static final int DESDE_LOS_CONTROLES = 1;
     private Allocator allocator;
     private DataSource dataSource;
+    private long idPlayList;
     private int posVideoAnterior;
     private int posVideoActual;
     private int posVideoSiguiente;
-
     private ExoPlayer exoPlayer;
-    private List<Video> aReproducir;
+    private List<Video> aReproducir; //lista que se reproduce actualmente
+    private List<Video> aReproducirShuffle; //lista original a la cual se le aplico shuffle
+    private List<Video> original; //lista original, inmutable.
     private String userAgent;
-    PlayerControl playerControl;
+    private PlayerControl playerControl;
+    private Preferencias pref;
     // Binder given to clients
     private final IBinder mBinder = new LocalBinder();
     private ExoPlayer.Listener exoListener;
+    private boolean vieneDeShuffle; //indica si el video anterior fue en modo shuffle
 
     public ReproductorService() {
     }
@@ -85,6 +97,7 @@ public class ReproductorService extends Service implements ExoPlayer.Listener{
     @Override
     public void onCreate() {
         super.onCreate();
+        pref = new Preferencias();
     }
 
     @Override
@@ -108,13 +121,30 @@ public class ReproductorService extends Service implements ExoPlayer.Listener{
      * De igual menera dentro de esta funcion se setea la lista de reproduccion y la posicion de los videos (actual
      * anterior y siguiente).
      * Esta es la primera funcion que se llama luego de iniciar el service como foreground
-     * @param videosAReproducir Lista de videos a reproducir
+     *
+     * @param videosAReproducir   Lista de videos a reproducir
      * @param posVideoAReproducir posicion dentro de la lista del video a reproducir
      */
-    public void reproducirInicial(List<Video> videosAReproducir, int posVideoAReproducir) {
-        aReproducir = videosAReproducir;
+    public void reproducirInicial(List<Video> videosAReproducir, int posVideoAReproducir, long playListId) {
+        idPlayList = playListId;
+        original = videosAReproducir;
         userAgent = Util.getUserAgent(getBaseContext(), "ListPlay");
         exoListener = this;
+
+        if (pref.isShuffle(this)) { //si la opcion shuffle esta activada
+            aReproducirShuffle = original; //asigna los vides a reproducir
+            Video aux = aReproducirShuffle.get(posVideoAReproducir); //obtiene el video inicial a reproducir
+            aReproducirShuffle.remove(posVideoAReproducir); //remueve dicho video de la lista
+            Collections.shuffle(aReproducirShuffle); //aplica shuffle a los videos restantes
+            aReproducirShuffle.add(0, aux); //añade el video removido al inicio de la lista
+            aReproducir = aReproducirShuffle; //asigna la lista shuffle como lista a reproducir
+            posVideoAReproducir = 0; //setea el primer elemento de la lista como video a reproducir
+            vieneDeShuffle = true;
+        } else { //si la opcion shuffle esta desactivada
+            aReproducir = original;
+            vieneDeShuffle = false;
+        }
+
         new ReproducirIni().execute(posVideoAReproducir);
     }
 
@@ -124,6 +154,7 @@ public class ReproductorService extends Service implements ExoPlayer.Listener{
     private class ReproducirIni extends AsyncTask<Integer, Void, Void> {
         int posVideo;
         Uri uri;
+
         @Override
         protected Void doInBackground(Integer... posVideoAReproducir) {
             posVideo = posVideoAReproducir[0];
@@ -168,15 +199,33 @@ public class ReproductorService extends Service implements ExoPlayer.Listener{
     /**
      * Realiza el proceso de reproduccion de video, pero para la segunda etapa, es decir, cuando se ocupan
      * los botones nextSong o prevSong
-     * @param mode indica si se reproduce la siguiente cancion de la lista o la anterior
+     *
+     * @param mode       indica si se reproduce la siguiente cancion de la lista o la anterior
+     * @param desdeDonde indica desde donde se llama la funcion, si es de manera interna
      */
-    public void reproducir(int mode) {
+    public void reproducir(int mode, int desdeDonde) {
         exoPlayer.stop();
         exoPlayer.seekTo(0);
-        if (mode == SIGUIENTE) {
+
+        if (pref.isShuffle(this)) { //si es shuffle
+            if (!vieneDeShuffle) {
+                long id = aReproducir.get(posVideoActual).getId(); //obtiene el id del video que se reprodujo
+                for (int i = 0; i < aReproducirShuffle.size(); i++) {
+                    if (id == aReproducirShuffle.get(i).getId()) { //ubica al elemento dentro de la lista con shuffle
+                        posVideoActual = i; //actualiza la posicion, ya que ahora se encuentra en la lista con shuffle
+                    }
+                }
+            }
+        }
+
+        if (desdeDonde == DESDE_LOS_CONTROLES) {
+            if (mode == SIGUIENTE) {
+                posVideoActual = getPosVideoSiguiente();
+            } else { //anterior
+                posVideoActual = getPosVideoAnterior();
+            }
+        } else { // de manera interna
             posVideoActual = getPosVideoSiguiente();
-        } else { //anterior
-            posVideoActual = getPosVideoAnterior();
         }
 
         new Reproducir().execute();
@@ -187,6 +236,7 @@ public class ReproductorService extends Service implements ExoPlayer.Listener{
      */
     private class Reproducir extends AsyncTask<Void, Void, Void> {
         Uri uri;
+
         @Override
         protected Void doInBackground(Void... posVideoAReproducir) {
             if (aCaducado(posVideoActual)) {
@@ -214,6 +264,7 @@ public class ReproductorService extends Service implements ExoPlayer.Listener{
 
     }
 
+
     private void background() {
         int id = 1;
         NotificationCompat.Builder notification = new NotificationCompat.Builder(this)
@@ -231,7 +282,7 @@ public class ReproductorService extends Service implements ExoPlayer.Listener{
                 );
 
         notification.setContentIntent(resultPendingIntent);
-        NotificationManager notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.notify(id, notification.build());
         startForeground(id, notification.build());
 
@@ -240,6 +291,7 @@ public class ReproductorService extends Service implements ExoPlayer.Listener{
 
     /**
      * Obtiene la posicion actual del video dentro de la lista de reproduccion que se esta reproduciendo
+     *
      * @return la posicion en la lista del video
      */
     public int getPosVideoActual() {
@@ -248,6 +300,7 @@ public class ReproductorService extends Service implements ExoPlayer.Listener{
 
     /**
      * Obtiene la posicion del video anterior con respecto al que se esta reproduciendo actualmente
+     *
      * @return la posicion en la lista del video
      */
     public int getPosVideoAnterior() {
@@ -260,6 +313,7 @@ public class ReproductorService extends Service implements ExoPlayer.Listener{
 
     /**
      * Obtiene la posicion del siguiente video con respecto al que se esta reproduciendo actualmente
+     *
      * @return la posicion en la lista del video
      */
     public int getPosVideoSiguiente() {
@@ -272,6 +326,7 @@ public class ReproductorService extends Service implements ExoPlayer.Listener{
 
     /**
      * Indica si el reproductor se encuentra reproduciendo algun video
+     *
      * @return booleando indicando el resultado
      */
     public boolean isPlaying() {
@@ -294,6 +349,7 @@ public class ReproductorService extends Service implements ExoPlayer.Listener{
 
     /**
      * Obtiene la posicion actual de reproduccion del video
+     *
      * @return un entero que determina la posicion en milisegundos
      */
     public int getCurrentPosition() {
@@ -302,6 +358,7 @@ public class ReproductorService extends Service implements ExoPlayer.Listener{
 
     /**
      * Obtiene el video actual que se esta reproduciendo
+     *
      * @return el video en cuestion
      */
     public Video getVideoActual() {
@@ -310,6 +367,7 @@ public class ReproductorService extends Service implements ExoPlayer.Listener{
 
     /**
      * Obtiene la duracion total del video
+     *
      * @return duracion en milisegundos
      */
     public int getDuration() {
@@ -318,6 +376,7 @@ public class ReproductorService extends Service implements ExoPlayer.Listener{
 
     /**
      * Obtiene el valor de cuanto se ha "cargado" (buffer) del video
+     *
      * @return un entero que determina el valor
      */
     public long getBufferedPosition() {
@@ -326,6 +385,7 @@ public class ReproductorService extends Service implements ExoPlayer.Listener{
 
     /**
      * Consulta si la instancia de exoplayer es nula
+     *
      * @return verdadero o falso
      */
     public boolean isExoPlayerNull() {
@@ -334,6 +394,7 @@ public class ReproductorService extends Service implements ExoPlayer.Listener{
 
     /**
      * Shuffle mode para la lista de videos
+     *
      * @param mode indica si es desde el inicio o si es desde una instancia en donde ya se encuentra reproduciendo
      *             algun video
      */
@@ -351,6 +412,7 @@ public class ReproductorService extends Service implements ExoPlayer.Listener{
 
     /**
      * Verifica si el url de audio del vidoe a caducado
+     *
      * @param posicion indice en la lista del elemento a consultar
      * @return verdero o falso
      */
@@ -373,13 +435,24 @@ public class ReproductorService extends Service implements ExoPlayer.Listener{
 
     @Override
     public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
-        switch(playbackState) {
+        switch (playbackState) {
             case ExoPlayer.STATE_BUFFERING:
                 Log.d(TAG, "State Buffering");
                 break;
             case ExoPlayer.STATE_ENDED:
                 Log.d(TAG, "State ended");
-                reproducir(SIGUIENTE);
+                if (!pref.isRepeat(this) && !pref.isRepeatOnce(this)) { //cuando repetir no esta activado
+                    if (getPosVideoActual() == aReproducir.size() - 1) { //cuando termina de reproducir la lista
+                        exoPlayer.stop();
+                        exoPlayer.seekTo(0);
+                    }
+                } else if (pref.isRepeatOnce(this)){ //cuando repetir la misma cancion esta activado
+                    System.out.println("hola repeat once");
+                    exoPlayer.seekTo(0);
+                } else {
+                    reproducir(SIGUIENTE, DE_MANERA_INTERNA);
+                }
+
                 break;
             case ExoPlayer.STATE_IDLE:
                 Log.d(TAG, "State Idle");
