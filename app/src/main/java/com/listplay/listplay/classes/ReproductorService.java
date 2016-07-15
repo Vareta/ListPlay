@@ -393,6 +393,14 @@ public class ReproductorService extends Service implements ExoPlayer.Listener {
     }
 
     /**
+     * Reproduce el video desde una posicion dada
+     * @param posicion posicion en cuestion desde donde se requiere reproducir
+     */
+    public void seekTo(int posicion) {
+        playerControl.seekTo(posicion);
+    }
+
+    /**
      * Shuffle mode para la lista de videos
      *
      * @param mode indica si es desde el inicio o si es desde una instancia en donde ya se encuentra reproduciendo

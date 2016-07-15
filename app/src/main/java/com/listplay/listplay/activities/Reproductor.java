@@ -40,7 +40,7 @@ import org.joda.time.DateTime;
 import java.util.List;
 
 
-public class Reproductor extends AppCompatActivity {
+public class Reproductor extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener{
     private ImageButton prevList;
     private ImageButton prevSong;
     private ImageButton playStop;
@@ -59,7 +59,7 @@ public class Reproductor extends AppCompatActivity {
     private long playListAReproducir;
     private int posVideoAReproducir;
     private List<Video> videosAReproducir;
-    private Handler threadHandler = new Handler();
+    private Handler threadHandler;
     private Video videoActual;
     private Preferencias pref;
     private Utilities util;
@@ -72,9 +72,7 @@ public class Reproductor extends AppCompatActivity {
         setContentView(R.layout.activity_reproductor);
         pref = new Preferencias();
         util = new Utilities();
-        //Inicializa el thread que monitorea la seekbar
-        UpdateSeekBarThread update = new UpdateSeekBarThread();
-        threadHandler.postDelayed(update, 500);
+        threadHandler = new Handler();
 
         bundle = getIntent().getExtras();
         if (bundle != null) {
@@ -88,6 +86,7 @@ public class Reproductor extends AppCompatActivity {
 
     private void iniciaElementos() {
         seekBar = (SeekBar) findViewById(R.id.seekBar);
+        seekBar.setOnSeekBarChangeListener(this);
         tiempoActual = (TextView) findViewById(R.id.tiempoActual);
         tiempoTotal = (TextView) findViewById(R.id.tiempoTotal);
         nombreArtista = (TextView) findViewById(R.id.nombreArtista);
@@ -131,16 +130,20 @@ public class Reproductor extends AppCompatActivity {
         prevSong.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mService.reproducir(ReproductorService.ANTERIOR, ReproductorService.DESDE_LOS_CONTROLES);
-                setInfoVideo();
+                if (mService != null) {
+                    mService.reproducir(ReproductorService.ANTERIOR, ReproductorService.DESDE_LOS_CONTROLES);
+                    setInfoVideo();
+                }
             }
         });
 
         nextSong.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mService.reproducir(ReproductorService.SIGUIENTE, ReproductorService.DESDE_LOS_CONTROLES);
-                setInfoVideo();
+                if (mService != null) {
+                    mService.reproducir(ReproductorService.SIGUIENTE, ReproductorService.DESDE_LOS_CONTROLES);
+                    setInfoVideo();
+                }
             }
         });
 
@@ -194,7 +197,7 @@ public class Reproductor extends AppCompatActivity {
     }
 
     // Thread to Update position for SeekBar.
-    private class UpdateSeekBarThread implements Runnable {
+    private Runnable updateSeekBarThread = new Runnable() {
 
         public void run() {
             if (mService != null) {
@@ -219,7 +222,7 @@ public class Reproductor extends AppCompatActivity {
                 }
             }
         }
-    }
+    };
 
     @Override
     protected void onStart() {
@@ -243,11 +246,12 @@ public class Reproductor extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-
-
         //Inicializa el localbroadcast que monitorea cuando se reproduce la siguiente cancion (automaticamente desde el service)
         IntentFilter intentFilter = new IntentFilter("siguiente");
         LocalBroadcastManager.getInstance(this).registerReceiver(sigVideoReceiver, intentFilter);
+
+        //Inicializa el thread que monitorea la seekbar
+        threadHandler.postDelayed(updateSeekBarThread, 500);
 
     }
 
@@ -255,6 +259,7 @@ public class Reproductor extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(sigVideoReceiver);
+        threadHandler.removeCallbacks(updateSeekBarThread);
     }
 
     /**
@@ -280,6 +285,29 @@ public class Reproductor extends AppCompatActivity {
             mBound = false;
         }
     };
+
+
+    /**INICIO SEEKBAR LISTENERS **/
+
+    @Override
+    public void onProgressChanged(SeekBar seekBar, int i, boolean fromUser) {
+        if (fromUser) {
+            System.out.println("hola");
+            mService.seekTo(i);
+        }
+    }
+
+    @Override
+    public void onStartTrackingTouch(SeekBar seekBar) {
+
+    }
+
+    @Override
+    public void onStopTrackingTouch(SeekBar seekBar) {
+
+    }
+    /**FIN SEEKBAR LISTENERS **/
+
 
     private class Reproducir extends AsyncTask<Void, Void, Void> {
 
