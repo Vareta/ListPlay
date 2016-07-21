@@ -16,10 +16,13 @@
         <!-- Define color properties as desired -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="android:textColorHighlight">@color/light_blue</item>
         <item name="colorAccent">@color/colorAccent</item>
-        <item name="colorControlNormal">@color/medium_green</item>
-
+        <!-- Define window properties as desired -->
+        <item name="android:windowNoTitle">false</item>
+        <item name="android:windowFullscreen">false</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowCloseOnTouchOutside">true</item>
     </style>
+
 
 </resources>

@@ -91,8 +91,8 @@ public class CRUD {
         Video video = new Video();
         video.setTitulo(titulo);
         if (cancion != null) {
-            video.setCancion(cancion);
-            video.setArtista(artista);
+            video.setCancion(cancion.trim());
+            video.setArtista(artista.trim());
         }
         video.setIdVideoYoutube(idVideoYoutube);
         video.setUrlImagen(urlImagen);
