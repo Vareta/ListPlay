@@ -19,7 +19,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activities.Reproductor" />
+        <activity android:name=".activities.Reproductor">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.listplay.listplay.activities.Central" />
+        </activity>
 
         <service
             android:name=".classes.URLService"
@@ -41,7 +45,7 @@
         <service
             android:name=".classes.ReproductorService"
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="true"/>
     </application>
 
 </manifest>

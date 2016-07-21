@@ -401,6 +401,32 @@ public class ReproductorService extends Service implements ExoPlayer.Listener {
     }
 
     /**
+     * Actualiza el video que se editó, pero en la lista que se encuentra en memoria
+     * @param idVideo id del video editado
+     * @param nombreCancion string que contiene el nuevo nombre de la cancion
+     * @param artista string que contiene el nuevo nombre del artista
+     */
+    public void actualizaVideoEditado(long idVideo, String nombreCancion, String artista) {
+        //actualiza para la lista normal
+        for (int i = 0; i < aReproducir.size(); i++) {
+            if (aReproducir.get(i).getId() == idVideo) {
+                aReproducir.get(i).setCancion(nombreCancion);
+                aReproducir.get(i).setArtista(artista);
+                break;
+            }
+        }
+        //actualiza para la lista con shuffle aplicado
+        if (aReproducirShuffle != null) {
+            for (int j = 0; j < aReproducirShuffle.size(); j++) {
+                if (aReproducirShuffle.get(j).getId() == idVideo) {
+                    aReproducirShuffle.get(j).setCancion(nombreCancion);
+                    aReproducirShuffle.get(j).setArtista(artista);
+                    break;
+                }
+            }
+        }
+    }
+    /**
      * Shuffle mode para la lista de videos
      *
      * @param mode indica si es desde el inicio o si es desde una instancia en donde ya se encuentra reproduciendo

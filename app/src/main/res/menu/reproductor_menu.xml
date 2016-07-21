@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/editar"
+        android:title="@string/editar_opc"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/añadir"
+        android:title="@string/añadir_opc"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/eliminar_lista"
+        android:title="@string/eliminar_lista_opc"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/eliminar"
+        android:title="@string/eliminar_opc"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/sleep_timer"
+        android:title="@string/sleep_timer_opc"
+        app:showAsAction="never" />
+
+
+
+</menu>

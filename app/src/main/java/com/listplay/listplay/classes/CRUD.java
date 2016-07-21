@@ -164,6 +164,21 @@ public class CRUD {
         return allVideos;
     }
 
+    /**
+     * Guarda nuevos parametros para el nombre de la cancion y artista del video.
+     * En este punto el video siempre existe
+     * @param idVideo ID del video que se quiere editar
+     * @param nombreCancion nombre de la cancion
+     * @param artista nombre del artista
+     */
+    public void editVideo(long idVideo, String nombreCancion, String artista) {
+        Video video = new Video();
+        video.setCancion(nombreCancion);
+        video.setArtista(artista);
+        video.update(idVideo);
+
+    }
+
 
     /*************PLAYLIST****************/
 

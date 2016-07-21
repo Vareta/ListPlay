@@ -1,26 +1,24 @@
 package com.listplay.listplay.activities;
 
-import android.animation.ArgbEvaluator;
-import android.animation.ValueAnimator;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.TransitionDrawable;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.IBinder;
-import android.support.v4.content.ContextCompat;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.content.res.ResourcesCompat;
-import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
+import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -28,6 +26,7 @@ import android.widget.TextView;
 
 import com.listplay.listplay.R;
 import com.listplay.listplay.classes.CRUD;
+import com.listplay.listplay.classes.EditVideoDialog;
 import com.listplay.listplay.classes.Preferencias;
 import com.listplay.listplay.classes.ReproductorService;
 import com.listplay.listplay.classes.ReproductorService.LocalBinder;
@@ -40,7 +39,7 @@ import org.joda.time.DateTime;
 import java.util.List;
 
 
-public class Reproductor extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener{
+public class Reproductor extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener, EditVideoDialog.EditVideoListener{
     private ImageButton prevList;
     private ImageButton prevSong;
     private ImageButton playStop;
@@ -64,6 +63,7 @@ public class Reproductor extends AppCompatActivity implements SeekBar.OnSeekBarC
     private Preferencias pref;
     private Utilities util;
     private Bundle bundle;
+    private Toolbar toolbar;
 
 
     @Override
@@ -80,10 +80,15 @@ public class Reproductor extends AppCompatActivity implements SeekBar.OnSeekBarC
             posVideoAReproducir = bundle.getInt("posicion");
             new Reproducir().execute();
         }
+
         iniciaElementos();
+        iniciaToolbar();
         buttonListeners(this);
     }
 
+    /**
+     * Inicia todos los elemnetos de la actividad
+     */
     private void iniciaElementos() {
         seekBar = (SeekBar) findViewById(R.id.seekBar);
         seekBar.setOnSeekBarChangeListener(this);
@@ -99,6 +104,7 @@ public class Reproductor extends AppCompatActivity implements SeekBar.OnSeekBarC
         repeat = (ImageButton) findViewById(R.id.repeat);
         shuffle = (ImageButton) findViewById(R.id.shuffle);
         portada = (ImageView) findViewById(R.id.imagen);
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
 
         if (!pref.isRepeat(this) && !pref.isRepeatOnce(this)) {
             repeat.setBackground(util.cambiaColorDrawable(getResources(), R.drawable.repeat, R.color.gris, getTheme()));
@@ -115,6 +121,10 @@ public class Reproductor extends AppCompatActivity implements SeekBar.OnSeekBarC
         startService(intent);
     }
 
+    /**
+     * Setea los listeners de los botones de la actividad
+     * @param context context de la actividad
+     */
     private void buttonListeners(final Context context) {
         playStop.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -224,13 +234,20 @@ public class Reproductor extends AppCompatActivity implements SeekBar.OnSeekBarC
         }
     };
 
+
+    private void iniciaToolbar() {
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+    }
+
     @Override
     protected void onStart() {
         super.onStart();
         // Bind to LocalService
         Intent intent = new Intent(this, ReproductorService.class);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-
     }
 
     @Override
@@ -292,7 +309,6 @@ public class Reproductor extends AppCompatActivity implements SeekBar.OnSeekBarC
     @Override
     public void onProgressChanged(SeekBar seekBar, int i, boolean fromUser) {
         if (fromUser) {
-            System.out.println("hola");
             mService.seekTo(i);
         }
     }
@@ -306,6 +322,13 @@ public class Reproductor extends AppCompatActivity implements SeekBar.OnSeekBarC
     public void onStopTrackingTouch(SeekBar seekBar) {
 
     }
+
+    @Override
+    public void onEditVideo(long idVideo, String nombreCancion, String artista) {
+        mService.actualizaVideoEditado(idVideo, nombreCancion, artista); //actualiza el vidoe en la lista que se mantiene en memoria
+        setInfoVideo(); //actualiza la informacion mostrada en la actividad
+    }
+
     /**FIN SEEKBAR LISTENERS **/
 
 
@@ -343,5 +366,24 @@ public class Reproductor extends AppCompatActivity implements SeekBar.OnSeekBarC
             setInfoVideo();
         }
     };
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.reproductor_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.editar:
+                FragmentManager fm = getSupportFragmentManager();
+                EditVideoDialog editVideoDialog = EditVideoDialog.newInstance(mService.getVideoActual().getId());
+                editVideoDialog.show(fm, "edit_video_fragment");
+
+            default:
+                return true;
+        }
+    }
 
 }

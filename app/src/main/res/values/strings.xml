@@ -14,7 +14,19 @@
     <string name="recientes_nav">Agregadas recientemente</string>
     <string name="artistas_nav">Artistas</string>
     <string name="settings_nav">Opciones</string>
-
+    <!--Reproductor opciones-->
+    <string name="editar_opc">Editar</string>
+    <string name="añadir_opc">Añadir a Lista</string>
+    <string name="eliminar_lista_opc">Eliminar de Lista</string>
+    <string name="eliminar_opc">Eliminar</string>
+    <string name="sleep_timer_opc">Temporizador</string>
+    <!--PopUp edit-->
+    <string name="nombre_popup">Nombre</string>
+    <string name="artista_popup">Artista</string>
+    <string name="titulo_youtube_popup">Título Youtube</string>
+    <string name="aceptar_popup">Aceptar</string>
+    <string name="cancelar_popup">Cancelar</string>
+    <string name="editar_popup">Editar</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

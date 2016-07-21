@@ -5,4 +5,10 @@
     <color name="colorAccent">#FF4081</color>
     <color name="gris">#9E9E9E</color>
     <color name="negro">#000</color>
+
+    <color name="dark_blue">#180065</color>
+    <color name="light_blue">#334ee9ff</color>
+    <color name="medium_green">#3d853e</color>
+    <color name="colorAccentLight">#FFC2D7</color>
+
 </resources>
