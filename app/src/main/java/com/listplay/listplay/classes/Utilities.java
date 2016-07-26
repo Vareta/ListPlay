@@ -1,11 +1,13 @@
 package com.listplay.listplay.classes;
 
+import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.Resources.Theme;
 import android.graphics.drawable.Drawable;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.listplay.listplay.R;
 
@@ -38,6 +40,16 @@ public class Utilities {
             Log.d(TAG, "ERROR: Drawable nulo");
             return null;
         }
-
     }
+
+    /**
+     * Muestra un mensaje al usuario via Toast
+     * @param context contexto
+     * @param mensaje String que contiene el mensaje a mostrar
+     */
+    public void mensajeCorto(Context context, String mensaje) {
+        Toast toast = Toast.makeText(context, mensaje, Toast.LENGTH_SHORT);
+        toast.show();
+    }
+
 }

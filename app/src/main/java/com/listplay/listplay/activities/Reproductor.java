@@ -18,7 +18,6 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -26,7 +25,8 @@ import android.widget.TextView;
 
 import com.listplay.listplay.R;
 import com.listplay.listplay.classes.CRUD;
-import com.listplay.listplay.classes.EditVideoDialog;
+import com.listplay.listplay.fragments.AddToPlayListDialog;
+import com.listplay.listplay.fragments.EditVideoDialog;
 import com.listplay.listplay.classes.Preferencias;
 import com.listplay.listplay.classes.ReproductorService;
 import com.listplay.listplay.classes.ReproductorService.LocalBinder;
@@ -39,7 +39,7 @@ import org.joda.time.DateTime;
 import java.util.List;
 
 
-public class Reproductor extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener, EditVideoDialog.EditVideoListener{
+public class Reproductor extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener, EditVideoDialog.EditVideoListener {
     private ImageButton prevList;
     private ImageButton prevSong;
     private ImageButton playStop;
@@ -123,6 +123,7 @@ public class Reproductor extends AppCompatActivity implements SeekBar.OnSeekBarC
 
     /**
      * Setea los listeners de los botones de la actividad
+     *
      * @param context context de la actividad
      */
     private void buttonListeners(final Context context) {
@@ -304,7 +305,9 @@ public class Reproductor extends AppCompatActivity implements SeekBar.OnSeekBarC
     };
 
 
-    /**INICIO SEEKBAR LISTENERS **/
+    /**
+     * INICIO SEEKBAR LISTENERS
+     **/
 
     @Override
     public void onProgressChanged(SeekBar seekBar, int i, boolean fromUser) {
@@ -329,7 +332,9 @@ public class Reproductor extends AppCompatActivity implements SeekBar.OnSeekBarC
         setInfoVideo(); //actualiza la informacion mostrada en la actividad
     }
 
-    /**FIN SEEKBAR LISTENERS **/
+    /**
+     * FIN SEEKBAR LISTENERS
+     **/
 
 
     private class Reproducir extends AsyncTask<Void, Void, Void> {
@@ -375,15 +380,23 @@ public class Reproductor extends AppCompatActivity implements SeekBar.OnSeekBarC
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        FragmentManager fm = getSupportFragmentManager();
         switch (item.getItemId()) {
             case R.id.editar:
-                FragmentManager fm = getSupportFragmentManager();
                 EditVideoDialog editVideoDialog = EditVideoDialog.newInstance(mService.getVideoActual().getId());
                 editVideoDialog.show(fm, "edit_video_fragment");
+                break;
+
+            case R.id.añadir:
+                AddToPlayListDialog addToPlayListDialog = AddToPlayListDialog.newInstance(mService.getVideoActual().getId());
+                addToPlayListDialog.show(fm, "add_to_playlist_fragment");
+                break;
 
             default:
                 return true;
         }
+
+        return super.onOptionsItemSelected(item);
     }
 
 }

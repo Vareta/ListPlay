@@ -3,7 +3,7 @@
     <!-- PlayListAdapter -->
     <string name="numeroVideosPlaylist">canciones</string>
     <!--PlayLists Fragment -->
-    <string name="noPlayLists">No existen Playlists creadas</string>
+    <string name="noPlayLists">No existen listas de reproducciones creadas</string>
     <!--Videos Fragment -->
     <string name="noVideos">No existen Videos actualmente</string>
     <!--AllVideos Fragment -->
@@ -20,13 +20,22 @@
     <string name="eliminar_lista_opc">Eliminar de Lista</string>
     <string name="eliminar_opc">Eliminar</string>
     <string name="sleep_timer_opc">Temporizador</string>
-    <!--PopUp edit-->
+    <!--Edit Dialog Fragment-->
     <string name="nombre_popup">Nombre</string>
     <string name="artista_popup">Artista</string>
     <string name="titulo_youtube_popup">Título Youtube</string>
     <string name="aceptar_popup">Aceptar</string>
     <string name="cancelar_popup">Cancelar</string>
     <string name="editar_popup">Editar</string>
+    <!--Agregar a playlist Dialog Fragment-->
+    <string name="nueva_playlist_addto">Nueva lista de reproducción</string>
+    <string name="cancelar_addto">Cancelar</string>
+    <string name="titulo_addto">Listas de reproducción</string>
+    <string name="new_playlist_title_addto">Ingrese el nombre</string>
+    <string name="exito_playlist_y_video_addto">Lista creada y video añadido</string>
+    <string name="exito_video_addto">Video añadido a la lista</string>
+    <string name="video_repetido_addto">Este video ya existe en la lista de reproducción</string>
+    <string name="lista_repetida_addto">Ya existe una lista con ese nombre</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

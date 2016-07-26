@@ -197,6 +197,18 @@ public class CRUD {
     }
 
     /**
+     * Obtiene el id de una playlist dado el nombre de esta.
+     * En este punto la playlist siempre existe, por lo que no se realiza una validacion de la existencia de esta
+     * @param nombre String que contiene el nombre de la playlist
+     * @return long que contiene el id de la playlist solicitada
+     */
+    public long getPlaylistId(String nombre) {
+        PlayList playList = DataSupport.where("nombre =?", nombre).findFirst(PlayList.class);
+
+        return playList.getId();
+    }
+
+    /**
      * Añade la playlist a la tabla
      * @param nombre de la playlist
      */
@@ -221,7 +233,7 @@ public class CRUD {
     /******PLAYLISTSCONVIDEOS*********/
 
     /**
-     * Funcion para cuando se requiere añadir mas de un video a una playlist
+     * Funcion para cuando se requiere añadir mas de un video a una playlist (desde una lista creada en youtube)
      * @param videosId Lista con los id (id obtenida desde la url) de los videos a añadir
      * @param nombrePlayList nombre de la playlist a la cual se añadiran los videos
      */
@@ -278,6 +290,29 @@ public class CRUD {
             }
         }
         return false;
+    }
+
+    /**
+     * Añade un video a una playlist existente. Si ya existe el video en la playlist, retorna falso
+     * @param idVideoAAñadir long que representa el id del video que se quiere añadir
+     * @param idPlaylist long que representa la id de la playlist a la cual se quiere añadir el video
+     * @return un booleano indicando true para cuando el video se añade a la playlist o false en caso contrario
+     */
+    public boolean añadirVideoAPlaylist(long idVideoAAñadir, long idPlaylist) {
+        //obtiene los videos, si existen, de la playlist
+        List<PlayListsConVideos> playListsConVideos = DataSupport.where("playListId =?", String.valueOf(idPlaylist)).find(PlayListsConVideos.class);
+        if (playListsConVideos == null || playListsConVideos.isEmpty()) { //si no existen
+            guardarVideoAPlayList(idPlaylist, idVideoAAñadir, 0);
+            return true;
+        } else {
+            int posicioInicial = playListsConVideos.get(playListsConVideos.size() - 1).getPosicion() + 1; //obtiene la posicion que debera llevar el primer elemento a añadir
+            if (!existeVideoEnPlayListConVideos(idVideoAAñadir, playListsConVideos)) { //si el video no existe en la playlist
+                guardarVideoAPlayList(idPlaylist, idVideoAAñadir, posicioInicial); //se añade el video
+                return true;
+            } else { //si ya existe
+                return false;
+            }
+        }
     }
 
     /**
