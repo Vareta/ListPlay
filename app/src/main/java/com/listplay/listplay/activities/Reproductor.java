@@ -3,6 +3,7 @@ package com.listplay.listplay.activities;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -10,14 +11,18 @@ import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.content.res.ResourcesCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.view.ContextThemeWrapper;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -64,6 +69,10 @@ public class Reproductor extends AppCompatActivity implements SeekBar.OnSeekBarC
     private Utilities util;
     private Bundle bundle;
     private Toolbar toolbar;
+    private CRUD crud;
+    private int contador;
+    public static final int DE_PLAYLIST = 0;
+    public static final int FORMA_PERMANENTE = 1;
 
 
     @Override
@@ -73,14 +82,7 @@ public class Reproductor extends AppCompatActivity implements SeekBar.OnSeekBarC
         pref = new Preferencias();
         util = new Utilities();
         threadHandler = new Handler();
-
-        bundle = getIntent().getExtras();
-        if (bundle != null) {
-            playListAReproducir = bundle.getLong("playlistid");
-            posVideoAReproducir = bundle.getInt("posicion");
-            new Reproducir().execute();
-        }
-
+        contador = 0;
         iniciaElementos();
         iniciaToolbar();
         buttonListeners(this);
@@ -90,6 +92,7 @@ public class Reproductor extends AppCompatActivity implements SeekBar.OnSeekBarC
      * Inicia todos los elemnetos de la actividad
      */
     private void iniciaElementos() {
+        crud = new CRUD();
         seekBar = (SeekBar) findViewById(R.id.seekBar);
         seekBar.setOnSeekBarChangeListener(this);
         tiempoActual = (TextView) findViewById(R.id.tiempoActual);
@@ -291,6 +294,15 @@ public class Reproductor extends AppCompatActivity implements SeekBar.OnSeekBarC
             LocalBinder binder = (LocalBinder) service;
             mService = binder.getService();
             mBound = true;
+            if (contador == 0) {
+                bundle = getIntent().getExtras();
+                if (bundle != null) {
+                    playListAReproducir = bundle.getLong("playlistid");
+                    posVideoAReproducir = bundle.getInt("posicion");
+                    new Reproducir().execute();
+                }
+                contador++;
+            }
             if (nombreArtista.getText().toString().equals("")) {
                 if (!mService.isExoPlayerNull()) {
                     setInfoVideo();
@@ -341,7 +353,6 @@ public class Reproductor extends AppCompatActivity implements SeekBar.OnSeekBarC
 
         @Override
         protected Void doInBackground(Void... params) {
-            CRUD crud = new CRUD();
             videosAReproducir = crud.getVideosPlaylist(playListAReproducir);
             return null;
         }
@@ -349,6 +360,20 @@ public class Reproductor extends AppCompatActivity implements SeekBar.OnSeekBarC
         @Override
         protected void onPostExecute(Void result) {
             mService.reproducirInicial(videosAReproducir, posVideoAReproducir, playListAReproducir);
+        }
+
+    }
+
+    /**
+     * Actualiza, en background, los videos a reproducir. Generalmente se utiliza cuando el usuario
+     * elimina un video de la lista de reproduccion o de forma permanente
+     */
+    private class ActualizaVideosAReproducir extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            videosAReproducir = crud.getVideosPlaylist(playListAReproducir);
+            return null;
         }
 
     }
@@ -392,11 +417,69 @@ public class Reproductor extends AppCompatActivity implements SeekBar.OnSeekBarC
                 addToPlayListDialog.show(fm, "add_to_playlist_fragment");
                 break;
 
+            case R.id.eliminar_de_lista:
+                eliminarVideoDialog(mService.getVideoActual(), DE_PLAYLIST);
+                break;
+
+            case R.id.eliminar:
+                eliminarVideoDialog(mService.getVideoActual(), FORMA_PERMANENTE);
+                break;
+
             default:
                 return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * Realiza el proceso de crear un Dialog para realizar la eliminacion de un video de la lista
+     * de reproduccion actual o de forma permanente
+     * @param videoAEliminar Video que se quiere eliminar
+     * @param mode modo de eliminacion, ya sea de la lista de reproduccion o permanente
+     */
+    private void eliminarVideoDialog(final Video videoAEliminar, final int mode) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        if (mode == DE_PLAYLIST) { //desde la playlist
+            builder.setMessage(getString(R.string.contenido_deletedia));
+        } else { //de forma permanente
+            builder.setMessage(getString(R.string.contenido_deletedb));
+        }
+
+        builder.setTitle(getString(R.string.titulo_deletedia));
+        builder.setPositiveButton(getString(R.string.aceptar_deletedia), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                if (mode == DE_PLAYLIST) { //desde la playlist
+                    crud.eliminarVideoDeLista(videoAEliminar.getId(), playListAReproducir); //elimina el video de la DB (de la playlist)
+                } else { //de forma permanente
+                    crud.eliminarVideo(videoAEliminar.getId()); //elimina el video de la DB
+                }
+                if (videosAReproducir.size() == 1) { //si era el ultimo video de la lista
+                    //Va hacia la vista principal, ya que no existen videos que reproducir
+                    Intent intent = new Intent(Reproductor.this, Central.class);
+                    startActivity(intent);
+                    finish(); //para asi no volver al estado en donde Reproductor no tenia videos que reproducir
+                } else {
+                    mService.eliminarVideoDePlayList(videoAEliminar); //elimina el video en memoria
+                    new ActualizaVideosAReproducir().execute(); //actualiza la lista de videos en la vista del reproductor
+                }
+                util.mensajeCorto(getBaseContext(), getString(R.string.exito_deletedia));
+            }
+        });
+        builder.setNegativeButton(R.string.cancelar_deletedia, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                //dismiss
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+        dialog.getButton(DialogInterface.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(this, R.color.colorAccent));
+        dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(this, R.color.colorAccent));
+
     }
 
 }

@@ -36,6 +36,13 @@
     <string name="exito_video_addto">Video añadido a la lista</string>
     <string name="video_repetido_addto">Este video ya existe en la lista de reproducción</string>
     <string name="lista_repetida_addto">Ya existe una lista con ese nombre</string>
+    <!--Eliminar video de playlist y/o base de datos dialog-->
+    <string name="titulo_deletedia">Eliminar video</string>
+    <string name="contenido_deletedia">¿Está seguro que desea eliminar este video de la Lista de Reproducción actual?</string>
+    <string name="contenido_deletedb">¿Está seguro que desea eliminar este video de forma permanente?</string>
+    <string name="aceptar_deletedia">Aceptar</string>
+    <string name="cancelar_deletedia">Cancelar</string>
+    <string name="exito_deletedia">Video eliminado</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

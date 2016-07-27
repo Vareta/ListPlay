@@ -426,6 +426,36 @@ public class ReproductorService extends Service implements ExoPlayer.Listener {
             }
         }
     }
+
+    /**
+     * Elimina el video de la lista de reproduccion actual (en memoria).
+     * Al eliminar pasa a reproducir el siguiente video, sin importar la posicion del video
+     * eliminado (si el video a eliminar era el ultimo, pues se comienza del primero)
+     * @param videoAEliminar Video que se quiere eliminar
+     */
+    public void eliminarVideoDePlayList(Video videoAEliminar) {
+        //Busca el video en la lista original para eliminarlo
+        for (int i = 0; i < original.size(); i++) {
+            if (videoAEliminar.getId() == original.get(i).getId()) {
+                original.remove(i);
+                aReproducir = original; //actualiza la lista de reproduccion actual
+                break;
+            }
+        }
+        //Busca el video en la lista que se le aplico shuffle y lo elimina
+        if (aReproducirShuffle != null) {
+            for (int j = 0; j < aReproducirShuffle.size(); j++) {
+                if (videoAEliminar.getId() == aReproducirShuffle.get(j).getId()) {
+                    aReproducirShuffle.remove(j);
+                    break;
+                }
+            }
+        }
+
+        reproducir(SIGUIENTE, DE_MANERA_INTERNA);
+    }
+
+
     /**
      * Shuffle mode para la lista de videos
      *

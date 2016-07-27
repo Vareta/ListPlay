@@ -70,7 +70,6 @@ public class NewPlayListDialog extends DialogFragment {
         cancelar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ocultarTeclado();
                 getDialog().dismiss();
             }
         });

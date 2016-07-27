@@ -10,7 +10,7 @@
         android:title="@string/añadir_opc"
         app:showAsAction="never" />
     <item
-        android:id="@+id/eliminar_lista"
+        android:id="@+id/eliminar_de_lista"
         android:title="@string/eliminar_lista_opc"
         app:showAsAction="never" />
     <item
