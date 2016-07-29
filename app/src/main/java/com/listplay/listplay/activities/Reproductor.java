@@ -1,5 +1,6 @@
 package com.listplay.listplay.activities;
 
+import android.app.TimePickerDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -10,6 +11,7 @@ import android.content.ServiceConnection;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.IBinder;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
@@ -27,6 +29,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.TimePicker;
 
 import com.listplay.listplay.R;
 import com.listplay.listplay.classes.CRUD;
@@ -36,6 +39,7 @@ import com.listplay.listplay.classes.Preferencias;
 import com.listplay.listplay.classes.ReproductorService;
 import com.listplay.listplay.classes.ReproductorService.LocalBinder;
 import com.listplay.listplay.classes.Utilities;
+import com.listplay.listplay.fragments.SleepTimerDialog;
 import com.listplay.listplay.models.Video;
 import com.squareup.picasso.Picasso;
 
@@ -44,7 +48,8 @@ import org.joda.time.DateTime;
 import java.util.List;
 
 
-public class Reproductor extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener, EditVideoDialog.EditVideoListener {
+public class Reproductor extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener, EditVideoDialog.EditVideoListener,
+                                                 SleepTimerDialog.SleepTimerListener {
     private ImageButton prevList;
     private ImageButton prevSong;
     private ImageButton playStop;
@@ -344,6 +349,17 @@ public class Reproductor extends AppCompatActivity implements SeekBar.OnSeekBarC
         setInfoVideo(); //actualiza la informacion mostrada en la actividad
     }
 
+    @Override
+    public void onDesactivarSleepTimer() {
+        mService.desactivaSleepTimer();
+    }
+
+    @Override
+    public void onAceptarSleepTimer(int tiempo) {
+        mService.setSleepTimer(tiempo);
+    }
+
+
     /**
      * FIN SEEKBAR LISTENERS
      **/
@@ -425,6 +441,10 @@ public class Reproductor extends AppCompatActivity implements SeekBar.OnSeekBarC
                 eliminarVideoDialog(mService.getVideoActual(), FORMA_PERMANENTE);
                 break;
 
+            case R.id.sleep_timer:
+                setSleepTimer();
+                break;
+
             default:
                 return true;
         }
@@ -480,6 +500,12 @@ public class Reproductor extends AppCompatActivity implements SeekBar.OnSeekBarC
         dialog.getButton(DialogInterface.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(this, R.color.colorAccent));
         dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(this, R.color.colorAccent));
 
+    }
+
+    private void setSleepTimer() {
+        FragmentManager fm = getSupportFragmentManager();
+        SleepTimerDialog sleepDialog = SleepTimerDialog.newInstance();
+        sleepDialog.show(fm, "sleep_timer");
     }
 
 }

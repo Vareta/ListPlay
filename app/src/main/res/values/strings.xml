@@ -43,6 +43,13 @@
     <string name="aceptar_deletedia">Aceptar</string>
     <string name="cancelar_deletedia">Cancelar</string>
     <string name="exito_deletedia">Video eliminado</string>
+    <!--Sleep timer dialog-->
+    <string name="titulo1_sleep">Parar en: </string>
+    <string name="titulo2_sleep"> minutos</string>
+    <string name="titulo3_sleep">Desactivado</string>
+    <string name="desactivar_sleep">Desactivar</string>
+    <string name="cancelar_sleep">Cancelar</string>
+    <string name="aceptar_sleep">Aceptar</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

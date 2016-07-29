@@ -10,6 +10,7 @@ import android.media.AudioManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Binder;
+import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
@@ -90,6 +91,8 @@ public class ReproductorService extends Service implements ExoPlayer.Listener {
     private final IBinder mBinder = new LocalBinder();
     private ExoPlayer.Listener exoListener;
     private boolean vieneDeShuffle; //indica si el video anterior fue en modo shuffle
+    private SleepTimer sleepTimer;
+
 
     public ReproductorService() {
     }
@@ -455,7 +458,48 @@ public class ReproductorService extends Service implements ExoPlayer.Listener {
         reproducir(SIGUIENTE, DE_MANERA_INTERNA);
     }
 
+    /**
+     * Setea el sleep timer dado un tiempo definido
+     * @param tiempoTotal Entero que indica el tiempo en milisegundos
+     */
+    public void setSleepTimer(long tiempoTotal) {
+        if (sleepTimer != null) { //si existe una instancia anterior, la cancela
+            sleepTimer.cancel();
+        }
+        sleepTimer = new SleepTimer(tiempoTotal, 1000);
+        sleepTimer.start();
+        pref.setSleepTimer(this, (int) tiempoTotal); //refleja el resultado en las preferencias
+    }
 
+    /**
+     * Cancela el sleep timer seteado anteriormente
+     */
+    public void desactivaSleepTimer() {
+        if (sleepTimer != null) {
+            sleepTimer.cancel();
+        }
+        pref.setSleepTimer(this, 0); //refleja el resultado en las preferencias
+    }
+
+    /**
+     * Clase que implementa un sleep timer
+     */
+    public class SleepTimer extends CountDownTimer {
+
+        public SleepTimer(long tiempoTotal, long intervalo) {
+            super(tiempoTotal, intervalo);
+        }
+        @Override
+        public void onTick(long tiempoHastaTerminar) {
+            System.out.println(tiempoHastaTerminar);
+        }
+
+        @Override
+        public void onFinish() {
+            pause(); //pausa el reproductor
+
+        }
+    }
     /**
      * Shuffle mode para la lista de videos
      *
